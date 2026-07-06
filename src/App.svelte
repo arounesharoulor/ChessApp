@@ -24,8 +24,6 @@
     matches: Match[];
   };
 
-  const storageKey = 'chess-tournament-state-v1';
-
   let players: Player[] = [];
   let tournaments: Tournament[] = [];
   let selectedTournamentId = '';
@@ -33,52 +31,35 @@
   let playerEditId: string | null = null;
   let tournamentForm = { name: '', date: '' };
   let tournamentEditId: string | null = null;
+  const API_BASE = 'http://localhost:3001/api';
 
-  onMount(() => {
-    loadState();
+  onMount(async () => {
+    await loadState();
   });
 
   function createId(prefix: string) {
     return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  function loadState() {
-    if (typeof window === 'undefined') return;
-
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) {
-      players = [
-        { id: 'player-ava', name: 'Ava', rating: 2048, club: 'Royal Knights' },
-        { id: 'player-jules', name: 'Jules', rating: 1987, club: 'City Chess Club' },
-        { id: 'player-mia', name: 'Mia', rating: 1876, club: 'North End' },
-        { id: 'player-noah', name: 'Noah', rating: 1923, club: 'Central Academy' }
-      ];
-      tournaments = [
-        {
-          id: 'tournament-summer',
-          name: 'Summer Open',
-          date: '2026-08-15',
-          players: ['player-ava', 'player-jules', 'player-mia', 'player-noah'],
-          matches: []
-        }
-      ];
-      selectedTournamentId = tournaments[0].id;
-      saveState();
-      return;
-    }
-
-    const parsed = JSON.parse(raw);
-    players = parsed.players ?? [];
-    tournaments = parsed.tournaments ?? [];
-    selectedTournamentId = parsed.selectedTournamentId ?? tournaments[0]?.id ?? '';
+  function normalizeTournament(tournament: any): Tournament {
+    return {
+      ...tournament,
+      players: typeof tournament.players === 'string' ? JSON.parse(tournament.players) : tournament.players || [],
+      matches: typeof tournament.matches === 'string' ? JSON.parse(tournament.matches) : tournament.matches || []
+    };
   }
 
-  function saveState() {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(
-      storageKey,
-      JSON.stringify({ players, tournaments, selectedTournamentId })
-    );
+  async function loadState() {
+    const currentId = selectedTournamentId;
+    const [playerRes, tournamentRes] = await Promise.all([
+      fetch(`${API_BASE}/players`),
+      fetch(`${API_BASE}/tournaments`)
+    ]);
+
+    players = await playerRes.json();
+    const rawTournaments = await tournamentRes.json();
+    tournaments = rawTournaments.map(normalizeTournament);
+    selectedTournamentId = tournaments.find((entry) => entry.id === currentId)?.id ?? tournaments[0]?.id ?? '';
   }
 
   function resetPlayerForm() {
@@ -86,7 +67,7 @@
     playerEditId = null;
   }
 
-  function handlePlayerSubmit() {
+  async function handlePlayerSubmit() {
     const trimmedName = playerForm.name.trim();
     const trimmedClub = playerForm.club.trim();
     const ratingValue = Number(playerForm.rating) || 1200;
@@ -94,20 +75,22 @@
     if (!trimmedName) return;
 
     if (playerEditId) {
-      players = players.map((player) =>
-        player.id === playerEditId
-          ? { ...player, name: trimmedName, club: trimmedClub || 'Independent', rating: ratingValue }
-          : player
-      );
+      await fetch(`${API_BASE}/players/${playerEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmedName, club: trimmedClub || 'Independent', rating: ratingValue })
+      });
     } else {
-      players = [
-        { id: createId('player'), name: trimmedName, club: trimmedClub || 'Independent', rating: ratingValue },
-        ...players
-      ];
+      await fetch(`${API_BASE}/players`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: createId('player'), name: trimmedName, club: trimmedClub || 'Independent', rating: ratingValue })
+      });
     }
 
+    await loadState();
+
     resetPlayerForm();
-    saveState();
   }
 
   function editPlayer(player: Player) {
@@ -115,17 +98,11 @@
     playerEditId = player.id;
   }
 
-  function deletePlayer(playerId: string) {
-    players = players.filter((player) => player.id !== playerId);
-    tournaments = tournaments.map((tournament) => ({
-      ...tournament,
-      players: tournament.players.filter((id) => id !== playerId),
-      matches: tournament.matches.filter((match) => match.playerA !== playerId && match.playerB !== playerId)
-    }));
-    if (selectedTournamentId && !tournaments.some((tournament) => tournament.id === selectedTournamentId)) {
-      selectedTournamentId = tournaments[0]?.id ?? '';
-    }
-    saveState();
+  async function deletePlayer(playerId: string) {
+    await fetch(`${API_BASE}/players/${playerId}`, {
+      method: 'DELETE'
+    });
+    await loadState();
   }
 
   function resetTournamentForm() {
@@ -133,28 +110,35 @@
     tournamentEditId = null;
   }
 
-  function handleTournamentSubmit() {
+  async function handleTournamentSubmit() {
     const trimmedName = tournamentForm.name.trim();
     const trimmedDate = tournamentForm.date.trim();
 
     if (!trimmedName) return;
 
     if (tournamentEditId) {
-      tournaments = tournaments.map((tournament) =>
-        tournament.id === tournamentEditId
-          ? { ...tournament, name: trimmedName, date: trimmedDate || 'TBD' }
-          : tournament
-      );
+      const existingTournament = tournaments.find((entry) => entry.id === tournamentEditId);
+      await fetch(`${API_BASE}/tournaments/${tournamentEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: trimmedName,
+          date: trimmedDate || 'TBD',
+          players: existingTournament?.players ?? [],
+          matches: existingTournament?.matches ?? []
+        })
+      });
     } else {
-      tournaments = [
-        { id: createId('tournament'), name: trimmedName, date: trimmedDate || 'TBD', players: [], matches: [] },
-        ...tournaments
-      ];
-      selectedTournamentId = tournaments[0].id;
+      await fetch(`${API_BASE}/tournaments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: createId('tournament'), name: trimmedName, date: trimmedDate || 'TBD', players: [], matches: [] })
+      });
     }
 
+    await loadState();
+
     resetTournamentForm();
-    saveState();
   }
 
   function editTournament(tournament: Tournament) {
@@ -163,15 +147,14 @@
     selectedTournamentId = tournament.id;
   }
 
-  function deleteTournament(tournamentId: string) {
-    tournaments = tournaments.filter((tournament) => tournament.id !== tournamentId);
-    if (selectedTournamentId === tournamentId) {
-      selectedTournamentId = tournaments[0]?.id ?? '';
-    }
-    saveState();
+  async function deleteTournament(tournamentId: string) {
+    await fetch(`${API_BASE}/tournaments/${tournamentId}`, {
+      method: 'DELETE'
+    });
+    await loadState();
   }
 
-  function togglePlayerInTournament(playerId: string) {
+  async function togglePlayerInTournament(playerId: string) {
     const tournament = tournaments.find((entry) => entry.id === selectedTournamentId);
     if (!tournament) return;
 
@@ -180,13 +163,16 @@
       ? tournament.players.filter((id) => id !== playerId)
       : [...tournament.players, playerId];
 
-    tournaments = tournaments.map((entry) =>
-      entry.id === selectedTournamentId ? { ...entry, players: nextPlayers, matches: [] } : entry
-    );
-    saveState();
+    const updatedTournament = { ...tournament, players: nextPlayers, matches: [] };
+    await fetch(`${API_BASE}/tournaments/${selectedTournamentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTournament)
+    });
+    await loadState();
   }
 
-  function generateMatches() {
+  async function generateMatches() {
     const tournament = tournaments.find((entry) => entry.id === selectedTournamentId);
     if (!tournament || tournament.players.length < 2) return;
 
@@ -200,10 +186,13 @@
       nextMatches.push({ id: createId('match'), playerA, playerB, winner, round: Math.floor(index / 2) + 1 });
     }
 
-    tournaments = tournaments.map((entry) =>
-      entry.id === selectedTournamentId ? { ...entry, matches: nextMatches } : entry
-    );
-    saveState();
+    const updatedTournament = { ...tournament, matches: nextMatches };
+    await fetch(`${API_BASE}/tournaments/${selectedTournamentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTournament)
+    });
+    await loadState();
   }
 
   $: currentTournament = tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
@@ -250,6 +239,20 @@
       <p class="hero-copy">
         Create players, build tournaments, assign competitors, generate random matches, and review the final podium.
       </p>
+      <div class="hero-stats">
+        <div>
+          <span>Total players</span>
+          <strong>{players.length}</strong>
+        </div>
+        <div>
+          <span>Active tournaments</span>
+          <strong>{tournaments.length}</strong>
+        </div>
+        <div>
+          <span>Current event</span>
+          <strong>{currentTournament ? currentTournament.name : 'None'}</strong>
+        </div>
+      </div>
     </div>
     <div class="hero-badge">Live local demo</div>
   </section>

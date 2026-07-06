@@ -1,0 +1,9 @@
+{
+	"/": [],
+	"/api/players": [
+		"src/routes/api/players/+server.ts"
+	],
+	"/api/tournaments": [
+		"src/routes/api/tournaments/+server.ts"
+	]
+}
