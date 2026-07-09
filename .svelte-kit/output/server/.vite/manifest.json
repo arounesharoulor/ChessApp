@@ -121,6 +121,12 @@
       "_server.js"
     ]
   },
+  "src/routes/api/+server.ts": {
+    "file": "entries/endpoints/api/_server.ts.js",
+    "name": "entries/endpoints/api/_server.ts",
+    "src": "src/routes/api/+server.ts",
+    "isEntry": true
+  },
   "src/routes/api/players/+server.ts": {
     "file": "entries/endpoints/api/players/_server.ts.js",
     "name": "entries/endpoints/api/players/_server.ts",

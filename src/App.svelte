@@ -31,7 +31,7 @@
   let playerEditId: string | null = null;
   let tournamentForm = { name: '', date: '' };
   let tournamentEditId: string | null = null;
-  const API_BASE = 'http://localhost:3001/api';
+  const API_BASE = '/api';
 
   onMount(async () => {
     await loadState();

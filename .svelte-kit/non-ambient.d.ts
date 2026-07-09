@@ -39,7 +39,7 @@ declare module "$app/types" {
 			"/api/players": Record<string, never>;
 			"/api/tournaments": Record<string, never>
 		};
-		Pathname(): "/" | "/api/players" | "/api/tournaments";
+		Pathname(): "/" | "/api" | "/api/players" | "/api/tournaments";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): string & {};
 	}

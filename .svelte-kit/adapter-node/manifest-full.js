@@ -10,7 +10,7 @@ return {
 	assets: new Set([]),
 	mimeTypes: {},
 	_: {
-		client: {start:"_app/immutable/entry/start.XbVe-SDy.js",app:"_app/immutable/entry/app.D_W4aR9C.js",imports:["_app/immutable/entry/start.XbVe-SDy.js","_app/immutable/chunks/2N1MTiw1.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/entry/app.D_W4aR9C.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/chunks/DYl5dUZ5.js","_app/immutable/chunks/xihTtKlq.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.C--YutG0.js",app:"_app/immutable/entry/app.Ck_91xm5.js",imports:["_app/immutable/entry/start.C--YutG0.js","_app/immutable/chunks/CSSstbky.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/entry/app.Ck_91xm5.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/chunks/DYl5dUZ5.js","_app/immutable/chunks/xihTtKlq.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),
@@ -26,6 +26,13 @@ return {
 				params: [],
 				page: { layouts: [0,], errors: [1,], leaf: 2 },
 				endpoint: null
+			},
+			{
+				id: "/api",
+				pattern: /^\/api\/?$/,
+				params: [],
+				page: null,
+				endpoint: __memo(() => import('./entries/endpoints/api/_server.ts.js'))
 			},
 			{
 				id: "/api/players",

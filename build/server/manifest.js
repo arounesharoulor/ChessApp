@@ -10,11 +10,11 @@ return {
 	assets: new Set([]),
 	mimeTypes: {},
 	_: {
-		client: {start:"_app/immutable/entry/start.XbVe-SDy.js",app:"_app/immutable/entry/app.D_W4aR9C.js",imports:["_app/immutable/entry/start.XbVe-SDy.js","_app/immutable/chunks/2N1MTiw1.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/entry/app.D_W4aR9C.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/chunks/DYl5dUZ5.js","_app/immutable/chunks/xihTtKlq.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.C--YutG0.js",app:"_app/immutable/entry/app.Ck_91xm5.js",imports:["_app/immutable/entry/start.C--YutG0.js","_app/immutable/chunks/CSSstbky.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/entry/app.Ck_91xm5.js","_app/immutable/chunks/GbfBVQah.js","_app/immutable/chunks/DYl5dUZ5.js","_app/immutable/chunks/xihTtKlq.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
-			__memo(() => import('./chunks/0-Bfk5LKuL.js')),
-			__memo(() => import('./chunks/1-BFEHaXkk.js')),
-			__memo(() => import('./chunks/2-CK5cWruB.js'))
+			__memo(() => import('./chunks/0-CECUam5l.js')),
+			__memo(() => import('./chunks/1-D7kh529s.js')),
+			__memo(() => import('./chunks/2-DKG032JB.js'))
 		],
 		remotes: {
 			
@@ -26,6 +26,13 @@ return {
 				params: [],
 				page: { layouts: [0,], errors: [1,], leaf: 2 },
 				endpoint: null
+			},
+			{
+				id: "/api",
+				pattern: /^\/api\/?$/,
+				params: [],
+				page: null,
+				endpoint: __memo(() => Promise.resolve().then(function () { return _server_ts; }))
 			},
 			{
 				id: "/api/players",
@@ -53,6 +60,10 @@ return {
 })();
 
 const prerendered = new Set([]);
+
+var _server_ts = /*#__PURE__*/Object.freeze({
+	__proto__: null
+});
 
 export { manifest, prerendered };
 //# sourceMappingURL=manifest.js.map
