@@ -4,15 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "svelte-kit dev",
     "backend": "node server.js",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "svelte-kit build",
+    "preview": "svelte-kit preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "start": "vite preview"
+    "start": "svelte-kit preview"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^2.0.0",
+    "@sveltejs/adapter-vercel": "^2.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.13.2",
