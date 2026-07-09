@@ -1,10 +1,15 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { connectDb } from '$lib/db';
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ url }) => {
   const db = await connectDb();
   const result = await db.query('SELECT * FROM tournaments ORDER BY date');
-  return new Response(JSON.stringify(result.rows), { headers: { 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify(result.rows), { 
+    headers: { 
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+    } 
+  });
 };
 
 export const POST: RequestHandler = async ({ request }) => {
