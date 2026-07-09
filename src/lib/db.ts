@@ -32,14 +32,23 @@ let initialized = false;
 let pool: InstanceType<typeof Pool> | null = null;
 let useFallback = false;
 
-async function ensureStoreFile() {
-  await mkdir(path.dirname(dataFile), { recursive: true });
+let memoryStore: StoreShape | null = null;
+let ensurePromise: Promise<void> | null = null;
 
-  try {
-    await readFile(dataFile, 'utf8');
-  } catch {
-    await writeFile(dataFile, JSON.stringify({ players: [], tournaments: [] }), 'utf8');
+async function ensureStoreFile() {
+  if (!ensurePromise) {
+    ensurePromise = (async () => {
+      await mkdir(path.dirname(dataFile), { recursive: true });
+      try {
+        const content = await readFile(dataFile, 'utf8');
+        // Validate it's proper JSON before accepting
+        JSON.parse(content);
+      } catch {
+        await writeFile(dataFile, JSON.stringify({ players: [], tournaments: [] }), 'utf8');
+      }
+    })();
   }
+  return ensurePromise;
 }
 
 function normalizeTournament(entry: Record<string, unknown>): TournamentRecord {
@@ -54,17 +63,25 @@ function normalizeTournament(entry: Record<string, unknown>): TournamentRecord {
 }
 
 async function readStore(): Promise<StoreShape> {
+  if (memoryStore) return memoryStore;
+  
   await ensureStoreFile();
-  const raw = await readFile(dataFile, 'utf8');
-  const parsed = JSON.parse(raw) as StoreShape;
-
-  return {
-    players: parsed.players ?? [],
-    tournaments: (parsed.tournaments ?? []).map((entry) => normalizeTournament(entry as Record<string, unknown>))
-  };
+  try {
+    const raw = await readFile(dataFile, 'utf8');
+    const parsed = JSON.parse(raw) as StoreShape;
+    memoryStore = {
+      players: parsed.players ?? [],
+      tournaments: (parsed.tournaments ?? []).map((entry) => normalizeTournament(entry as Record<string, unknown>))
+    };
+  } catch (err) {
+    console.error('Failed to parse store data, resetting to empty state:', err);
+    memoryStore = { players: [], tournaments: [] };
+  }
+  return memoryStore;
 }
 
 async function writeStore(store: StoreShape) {
+  memoryStore = store;
   await ensureStoreFile();
   await writeFile(dataFile, JSON.stringify(store), 'utf8');
 }
