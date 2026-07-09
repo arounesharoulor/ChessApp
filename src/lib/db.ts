@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -5,7 +6,7 @@ import { Pool } from 'pg';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dataFile = path.join(__dirname, '..', '..', '.chess-data.json');
+const dataFile = process.env.VERCEL ? '/tmp/.chess-data.json' : path.join(__dirname, '..', '..', '.chess-data.json');
 
 type PlayerRecord = {
   id?: string;
@@ -71,8 +72,13 @@ async function writeStore(store: StoreShape) {
 async function initializeDb() {
   const connectionString = process.env.DATABASE_URL || process.env.PG_CONNECTION_STRING;
 
+  console.log("DATABASE_URL =", connectionString);
+
   if (connectionString) {
+    console.log("Connecting to PostgreSQL...");
+
     pool = new Pool({ connectionString });
+    
     await pool.query(`
       CREATE TABLE IF NOT EXISTS players (
         id TEXT PRIMARY KEY,
@@ -89,9 +95,14 @@ async function initializeDb() {
         matches JSONB NOT NULL DEFAULT '[]'
       );
     `);
+
+    console.log("✅ PostgreSQL Connected!");
+
     useFallback = false;
     return;
   }
+
+  console.log("⚠ Using JSON fallback");
 
   await ensureStoreFile();
   useFallback = true;
@@ -169,11 +180,13 @@ async function handleFallbackQuery(text: string, params: unknown[] = []) {
   return { rows: [] };
 }
 
+let initPromise: Promise<void> | null = null;
+
 export async function connectDb() {
-  if (!initialized) {
-    await initializeDb();
-    initialized = true;
+  if (!initPromise) {
+    initPromise = initializeDb();
   }
+  await initPromise;
 
   if (useFallback) {
     return {

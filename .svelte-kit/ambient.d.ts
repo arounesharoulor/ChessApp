@@ -38,17 +38,19 @@
  * The above values will be the same _even if_ different values for `ENVIRONMENT` or `PUBLIC_BASE_URL` are set at runtime, as they are statically replaced in your code with their build time values.
  */
 declare module '$env/static/private' {
+	export const DATABASE_URL: string;
 	export const ALLUSERSPROFILE: string;
 	export const amc: string;
+	export const ANTIGRAVITY_CLI_ALIAS: string;
 	export const APPDATA: string;
 	export const CHROME_CRASHPAD_PIPE_NAME: string;
+	export const CLAUDE_CODE_SSE_PORT: string;
 	export const COLOR: string;
 	export const COLORTERM: string;
 	export const CommonProgramFiles: string;
 	export const CommonProgramW6432: string;
 	export const COMPUTERNAME: string;
 	export const ComSpec: string;
-	export const COPILOT_DEBUG_NONCE: string;
 	export const DriverData: string;
 	export const EDITOR: string;
 	export const EFC_4532_1262719628: string;
@@ -110,8 +112,6 @@ declare module '$env/static/private' {
 	export const PROMPT: string;
 	export const PSModulePath: string;
 	export const PUBLIC: string;
-	export const PYTHONSTARTUP: string;
-	export const PYTHON_BASIC_REPL: string;
 	export const RegionCode: string;
 	export const SESSIONNAME: string;
 	export const SystemDrive: string;
@@ -218,17 +218,19 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		DATABASE_URL: string;
 		ALLUSERSPROFILE: string;
 		amc: string;
+		ANTIGRAVITY_CLI_ALIAS: string;
 		APPDATA: string;
 		CHROME_CRASHPAD_PIPE_NAME: string;
+		CLAUDE_CODE_SSE_PORT: string;
 		COLOR: string;
 		COLORTERM: string;
 		CommonProgramFiles: string;
 		CommonProgramW6432: string;
 		COMPUTERNAME: string;
 		ComSpec: string;
-		COPILOT_DEBUG_NONCE: string;
 		DriverData: string;
 		EDITOR: string;
 		EFC_4532_1262719628: string;
@@ -290,8 +292,6 @@ declare module '$env/dynamic/private' {
 		PROMPT: string;
 		PSModulePath: string;
 		PUBLIC: string;
-		PYTHONSTARTUP: string;
-		PYTHON_BASIC_REPL: string;
 		RegionCode: string;
 		SESSIONNAME: string;
 		SystemDrive: string;
