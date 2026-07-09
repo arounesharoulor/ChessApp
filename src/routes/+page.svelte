@@ -160,24 +160,40 @@
     const tournament = tournaments.find((entry) => entry.id === selectedTournamentId);
     if (!tournament) return;
 
-    const nextPlayers = tournament.players.includes(playerId)
-      ? tournament.players.filter((id) => id !== playerId)
-      : [...tournament.players, playerId];
+    const currentPlayers = Array.isArray(tournament.players)
+      ? tournament.players
+      : JSON.parse(tournament.players as unknown as string);
+
+    const nextPlayers = currentPlayers.includes(playerId)
+      ? currentPlayers.filter((id) => id !== playerId)
+      : [...currentPlayers, playerId];
 
     const updatedTournament = { ...tournament, id: tournament.id, players: nextPlayers, matches: [] };
-    await fetch('/api/tournaments', {
+    const response = await fetch('/api/tournaments', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedTournament)
     });
+
+    if (!response.ok) {
+      console.error('Failed to update tournament players', await response.text());
+      return;
+    }
+
     await loadState();
   }
 
   async function generateMatches() {
     const tournament = tournaments.find((entry) => entry.id === selectedTournamentId);
-    if (!tournament || tournament.players.length < 2) return;
+    if (!tournament) return;
 
-    const shuffled = [...tournament.players].sort(() => Math.random() - 0.5);
+    const currentPlayers = Array.isArray(tournament.players)
+      ? tournament.players
+      : JSON.parse(tournament.players as unknown as string);
+
+    if (currentPlayers.length < 2) return;
+
+    const shuffled = [...currentPlayers].sort(() => Math.random() - 0.5);
     const nextMatches: Match[] = [];
 
     for (let index = 0; index < shuffled.length - 1; index += 2) {
@@ -187,16 +203,23 @@
       nextMatches.push({ id: createId('match'), playerA, playerB, winner, round: Math.floor(index / 2) + 1 });
     }
 
-    const updatedTournament = { ...tournament, matches: nextMatches };
-    await fetch('/api/tournaments', {
+    const updatedTournament = { ...tournament, players: currentPlayers, matches: nextMatches };
+    const response = await fetch('/api/tournaments', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedTournament)
     });
+
+    if (!response.ok) {
+      console.error('Failed to update tournament matches', await response.text());
+      return;
+    }
+
     await loadState();
   }
 
   $: currentTournament = tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
+  $: canGenerateMatches = currentTournament?.players.length >= 2;
   $: ranking = (() => {
     if (!currentTournament) return [];
 
@@ -374,7 +397,12 @@
       </div>
 
       <div class="actions match-actions">
-        <button type="button" on:click={generateMatches}>Generate random matches</button>
+        <button type="button" on:click={generateMatches} disabled={!canGenerateMatches}>
+          Generate random matches
+        </button>
+        {#if currentTournament && currentTournament.players.length < 2}
+          <p class="help-text">Add at least 2 players to this tournament before generating matches.</p>
+        {/if}
       </div>
 
       {#if currentTournament.matches.length > 0}
