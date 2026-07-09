@@ -51,8 +51,8 @@
   async function loadState() {
     const currentId = selectedTournamentId;
     const [playerRes, tournamentRes] = await Promise.all([
-      fetch('/api/players'),
-      fetch('/api/tournaments')
+      fetch(`/api/players?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-store' } }),
+      fetch(`/api/tournaments?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-store' } })
     ]);
 
     players = await playerRes.json();
